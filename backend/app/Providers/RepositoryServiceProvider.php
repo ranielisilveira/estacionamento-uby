@@ -5,11 +5,15 @@ namespace App\Providers;
 use App\Domain\Contracts\Repositories\CustomerRepositoryInterface;
 use App\Domain\Contracts\Repositories\OperatorRepositoryInterface;
 use App\Domain\Contracts\Repositories\ParkingSpotRepositoryInterface;
+use App\Domain\Contracts\Repositories\PaymentRepositoryInterface;
 use App\Domain\Contracts\Repositories\ReservationRepositoryInterface;
+use App\Domain\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Infrastructure\Repositories\EloquentCustomerRepository;
 use App\Infrastructure\Repositories\EloquentOperatorRepository;
 use App\Infrastructure\Repositories\EloquentParkingSpotRepository;
+use App\Infrastructure\Repositories\EloquentPaymentRepository;
 use App\Infrastructure\Repositories\EloquentReservationRepository;
+use App\Infrastructure\Repositories\EloquentVehicleRepository;
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
@@ -38,6 +42,16 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(
             ReservationRepositoryInterface::class,
             EloquentReservationRepository::class
+        );
+
+        $this->app->bind(
+            VehicleRepositoryInterface::class,
+            EloquentVehicleRepository::class
+        );
+
+        $this->app->bind(
+            PaymentRepositoryInterface::class,
+            EloquentPaymentRepository::class
         );
     }
 
