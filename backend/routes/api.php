@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\Auth\CustomerAuthController;
+use App\Http\Controllers\Api\Auth\OperatorAuthController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\OperatorController;
 use App\Http\Controllers\Api\ParkingSpotController;
@@ -12,11 +14,23 @@ use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::prefix('v1')->group(function () {
-    // Authentication routes will be added here
+    // Operator authentication
+    Route::post('operators/register', [OperatorAuthController::class, 'register']);
+    Route::post('operators/login', [OperatorAuthController::class, 'login']);
+    
+    // Customer authentication
+    Route::post('customers/register', [CustomerAuthController::class, 'register']);
+    Route::post('customers/login', [CustomerAuthController::class, 'login']);
 });
 
 // Protected routes - require authentication
 Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
+    
+    // Auth user info and logout
+    Route::post('operators/logout', [OperatorAuthController::class, 'logout']);
+    Route::get('operators/me', [OperatorAuthController::class, 'me']);
+    Route::post('customers/logout', [CustomerAuthController::class, 'logout']);
+    Route::get('customers/me', [CustomerAuthController::class, 'me']);
     
     // Operators management
     Route::apiResource('operators', OperatorController::class);
