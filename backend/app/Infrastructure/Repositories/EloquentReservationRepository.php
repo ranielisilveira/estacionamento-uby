@@ -55,12 +55,17 @@ final class EloquentReservationRepository implements ReservationRepositoryInterf
         return Reservation::where('id', $id)->update(['status' => $status]);
     }
 
-    public function complete(int $id): bool
+    public function complete(int $id, array $data): ?Reservation
     {
-        return Reservation::where('id', $id)->update([
-            'exit_time' => now(),
-            'status' => 'completed',
-        ]);
+        $reservation = Reservation::find($id);
+        
+        if (!$reservation) {
+            return null;
+        }
+        
+        $reservation->update(array_merge($data, ['status' => 'completed']));
+        
+        return $reservation->fresh();
     }
 
     public function findWithRelations(int $id): ?Reservation

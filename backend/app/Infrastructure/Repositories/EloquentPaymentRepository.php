@@ -23,7 +23,7 @@ final class EloquentPaymentRepository implements PaymentRepositoryInterface
 
     public function update(int $id, array $data): bool
     {
-        return Payment::where('id', $id)->update($data);
+        return Payment::where('id', $id)->update($data) > 0;
     }
 
     public function delete(int $id): bool

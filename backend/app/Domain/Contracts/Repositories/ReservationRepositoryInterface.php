@@ -48,9 +48,9 @@ interface ReservationRepositoryInterface
     public function updateStatus(int $id, string $status): bool;
 
     /**
-     * Complete a reservation (set exit_time).
+     * Complete a reservation (set exit_time and total_amount).
      */
-    public function complete(int $id): bool;
+    public function complete(int $id, array $data): ?Reservation;
 
     /**
      * Find reservation with relationships.

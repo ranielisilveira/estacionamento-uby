@@ -38,9 +38,17 @@ final class EloquentParkingSpotRepository implements ParkingSpotRepositoryInterf
         return ParkingSpot::create($data);
     }
 
-    public function update(int $id, array $data): bool
+    public function update(int $id, array $data): ?ParkingSpot
     {
-        return ParkingSpot::where('id', $id)->update($data);
+        $parkingSpot = ParkingSpot::find($id);
+        
+        if (!$parkingSpot) {
+            return null;
+        }
+        
+        $parkingSpot->update($data);
+        
+        return $parkingSpot->fresh();
     }
 
     public function delete(int $id): bool

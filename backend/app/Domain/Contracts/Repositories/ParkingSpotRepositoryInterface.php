@@ -40,7 +40,7 @@ interface ParkingSpotRepositoryInterface
     /**
      * Update a parking spot.
      */
-    public function update(int $id, array $data): bool;
+    public function update(int $id, array $data): ?ParkingSpot;
 
     /**
      * Delete a parking spot.
