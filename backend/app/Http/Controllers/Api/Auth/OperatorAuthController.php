@@ -19,6 +19,7 @@ class OperatorAuthController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'cpf' => ['required', 'string', 'size:14', 'unique:operators'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:operators'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'phone' => ['nullable', 'string', 'max:20'],
@@ -26,6 +27,7 @@ class OperatorAuthController extends Controller
 
         $operator = Operator::create([
             'name' => $request->input('name'),
+            'cpf' => $request->input('cpf'),
             'email' => $request->input('email'),
             'password' => Hash::make($request->input('password')),
             'phone' => $request->input('phone'),
