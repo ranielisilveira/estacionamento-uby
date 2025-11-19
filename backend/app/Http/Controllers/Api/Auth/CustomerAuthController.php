@@ -19,26 +19,32 @@ class CustomerAuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:customers'],
             'cpf' => ['required', 'string', 'size:11', 'unique:customers'],
+            'rg' => ['required', 'string', 'max:20'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'street' => ['nullable', 'string', 'max:255'],
-            'neighborhood' => ['nullable', 'string', 'max:255'],
-            'city' => ['nullable', 'string', 'max:255'],
-            'state' => ['nullable', 'string', 'size:2'],
-            'zip_code' => ['nullable', 'string', 'size:8'],
+            'zip_code' => ['required', 'string', 'max:9'],
+            'street' => ['required', 'string', 'max:255'],
+            'number' => ['required', 'string', 'max:20'],
+            'complement' => ['nullable', 'string', 'max:255'],
+            'neighborhood' => ['required', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:255'],
+            'state' => ['required', 'string', 'size:2'],
         ]);
 
         $customer = Customer::create([
             'name' => $request->input('name'),
             'email' => $request->input('email'),
             'cpf' => $request->input('cpf'),
+            'rg' => $request->input('rg'),
             'password' => Hash::make($request->input('password')),
             'phone' => $request->input('phone'),
-            'street' => $request->input('street'),
-            'neighborhood' => $request->input('neighborhood'),
-            'city' => $request->input('city'),
-            'state' => $request->input('state'),
-            'zip_code' => $request->input('zip_code'),
+            'address_zipcode' => $request->input('zip_code'),
+            'address_street' => $request->input('street'),
+            'address_number' => $request->input('number'),
+            'address_complement' => $request->input('complement'),
+            'address_neighborhood' => $request->input('neighborhood'),
+            'address_city' => $request->input('city'),
+            'address_state' => $request->input('state'),
         ]);
 
         $token = $customer->createToken('customer-token')->plainTextToken;
@@ -100,19 +106,22 @@ class CustomerAuthController extends Controller
         $customer = $request->user();
 
         return response()->json([
-            'user' => [
+            'data' => [
                 'id' => $customer->id,
                 'name' => $customer->name,
                 'email' => $customer->email,
                 'cpf' => $customer->cpf,
+                'rg' => $customer->rg,
                 'phone' => $customer->phone,
                 'type' => 'customer',
                 'address' => [
-                    'street' => $customer->street,
-                    'neighborhood' => $customer->neighborhood,
-                    'city' => $customer->city,
-                    'state' => $customer->state,
-                    'zip_code' => $customer->zip_code,
+                    'zip_code' => $customer->address_zipcode,
+                    'street' => $customer->address_street,
+                    'number' => $customer->address_number,
+                    'complement' => $customer->address_complement,
+                    'neighborhood' => $customer->address_neighborhood,
+                    'city' => $customer->address_city,
+                    'state' => $customer->address_state,
                 ],
             ],
         ]);

@@ -43,6 +43,7 @@ class Customer extends Authenticatable
         'rg',
         'email',
         'password',
+        'phone',
         'email_verified_at',
         'address_zipcode',
         'address_street',
