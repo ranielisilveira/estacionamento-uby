@@ -43,6 +43,7 @@ services:
     volumes:
       - ./backend/public:/var/www/html/public
       - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./chat-service:/var/www/chat
     depends_on:
       - backend
     networks:
@@ -97,6 +98,35 @@ services:
       - "8025:8025"  # Web UI
     networks:
       - estacionamento-network
+
+  chat:
+    build:
+      context: ./chat-service
+      dockerfile: Dockerfile
+    container_name: estacionamento-chat
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      HOST: 0.0.0.0
+      JWT_SECRET: ${JWT_SECRET:-your-jwt-secret-key}
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: laravel
+      DB_PASSWORD: secret
+      DB_NAME: estacionamento_uby
+      CORS_ORIGIN: http://localhost:3000,http://localhost:8000
+      LOG_LEVEL: debug
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - estacionamento-network
+    volumes:
+      - ./chat-service:/app
+      - /app/node_modules
 
 networks:
   estacionamento-network:
