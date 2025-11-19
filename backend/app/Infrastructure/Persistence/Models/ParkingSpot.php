@@ -11,8 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * ParkingSpot Model
  *
  * @property int $id
- * @property int $operator_id
+ * @property int|null $operator_id
  * @property string $number
+ * @property string $type
  * @property float $hourly_price
  * @property float $width
  * @property float $length
@@ -27,6 +28,7 @@ class ParkingSpot extends Model
     protected $fillable = [
         'operator_id',
         'number',
+        'type',
         'hourly_price',
         'width',
         'length',

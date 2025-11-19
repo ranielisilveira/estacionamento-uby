@@ -7,19 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-/**
- * Reservation Model
- *
- * @property int $id
- * @property int $customer_id
- * @property int $vehicle_id
- * @property int $parking_spot_id
- * @property \Carbon\Carbon $entry_time
- * @property \Carbon\Carbon|null $exit_time
- * @property string $status
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
- */
 class Reservation extends Model
 {
     use HasFactory;
@@ -30,6 +17,7 @@ class Reservation extends Model
         'parking_spot_id',
         'entry_time',
         'exit_time',
+        'total_amount',
         'status',
     ];
 
@@ -38,6 +26,7 @@ class Reservation extends Model
         return [
             'entry_time' => 'datetime',
             'exit_time' => 'datetime',
+            'total_amount' => 'decimal:2',
         ];
     }
 

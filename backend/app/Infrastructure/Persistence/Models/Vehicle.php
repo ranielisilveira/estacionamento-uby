@@ -12,10 +12,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * @property int $id
  * @property int $customer_id
- * @property string $plate
+ * @property string $license_plate
+ * @property string $brand
  * @property string $model
  * @property string $color
- * @property int $year
+ * @property string $type
  * @property bool $is_active
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
@@ -26,10 +27,11 @@ class Vehicle extends Model
 
     protected $fillable = [
         'customer_id',
-        'plate',
+        'license_plate',
+        'brand',
         'model',
         'color',
-        'year',
+        'type',
         'is_active',
     ];
 
@@ -37,7 +39,6 @@ class Vehicle extends Model
     {
         return [
             'is_active' => 'boolean',
-            'year' => 'integer',
         ];
     }
 
