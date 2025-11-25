@@ -1,15 +1,15 @@
 import axios from 'axios';
 
 const httpClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost/api/v1',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
   withCredentials: true,
+  timeout: 15000,
 });
 
-// Request interceptor - adiciona token de autenticação
 httpClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('auth_token');
@@ -23,14 +23,38 @@ httpClient.interceptors.request.use(
   }
 );
 
-// Response interceptor - trata erros 401
 httpClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const config = error.config;
+
+    if (
+      error.code === 'ECONNREFUSED' || 
+      error.code === 'ERR_NETWORK' ||
+      error.code === 'ETIMEDOUT' ||
+      error.message?.includes('Network Error') ||
+      error.message?.includes('timeout')
+    ) {
+      config._retryCount = config._retryCount || 0;
+      
+      if (config._retryCount < 5) {
+        config._retryCount += 1;
+        const delay = config._retryCount * 1000;
+        console.log(`[HTTP Client] Tentativa ${config._retryCount}/5 após ${delay}ms...`);
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        return httpClient(config);
+      }
+      
+      console.error('[HTTP Client] Falha após 5 tentativas. Backend pode estar offline.');
+    }
+
     if (error.response?.status === 401) {
       localStorage.removeItem('auth_token');
       window.location.href = '/login';
     }
+    
     return Promise.reject(error);
   }
 );

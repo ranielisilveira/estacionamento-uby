@@ -16,6 +16,10 @@ use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::prefix('v1')->group(function () {
+    Route::get('health', function () {
+        return response()->json(['status' => 'ok', 'timestamp' => now()]);
+    });
+
     // Operator authentication
     Route::post('operators/register', [OperatorAuthController::class, 'register']);
     Route::post('operators/login', [OperatorAuthController::class, 'login']);
