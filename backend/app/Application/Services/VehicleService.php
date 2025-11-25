@@ -63,6 +63,14 @@ final class VehicleService
             throw new \InvalidArgumentException('Vehicle not found');
         }
 
+        $activeReservations = $vehicle->reservations()
+            ->whereIn('status', ['pending', 'active'])
+            ->count();
+
+        if ($activeReservations > 0) {
+            throw new \InvalidArgumentException('Não é possível excluir um veículo com reservas ativas');
+        }
+
         return $this->vehicleRepository->delete($id);
     }
 }
