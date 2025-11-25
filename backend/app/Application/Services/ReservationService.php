@@ -104,6 +104,13 @@ final class ReservationService
             throw new \InvalidArgumentException('Failed to complete reservation');
         }
 
+        \App\Infrastructure\Persistence\Models\Payment::create([
+            'reservation_id' => $id,
+            'amount' => $totalAmount,
+            'status' => 'paid',
+            'paid_at' => now(),
+        ]);
+
         $this->parkingSpotService->markAsAvailable($reservation->parking_spot_id);
 
         return $completedReservation;

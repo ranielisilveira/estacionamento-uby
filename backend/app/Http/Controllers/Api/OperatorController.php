@@ -102,9 +102,12 @@ class OperatorController extends Controller
         $availableSpots = \App\Infrastructure\Persistence\Models\ParkingSpot::where('status', 'available')->count();
         $activeReservations = \App\Infrastructure\Persistence\Models\Reservation::where('status', 'active')->count();
 
-        $todayRevenue = \App\Infrastructure\Persistence\Models\Reservation::where('status', 'completed')
-            ->whereDate('exit_time', today())
-            ->sum('total_amount');
+        $todayStart = today()->startOfDay();
+        $todayEnd = today()->endOfDay();
+
+        $todayRevenue = \App\Infrastructure\Persistence\Models\Payment::where('status', 'paid')
+            ->whereBetween('paid_at', [$todayStart, $todayEnd])
+            ->sum('amount');
 
         return response()->json([
             'data' => [
