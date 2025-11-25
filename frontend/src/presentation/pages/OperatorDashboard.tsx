@@ -290,21 +290,12 @@ export function OperatorDashboard() {
           <div>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Vagas de Estacionamento</h2>
-              <button
-                onClick={handleCreateSpot}
-                className="btn btn-primary"
-              >
-                + Cadastrar Vaga
-              </button>
             </div>
 
             {spots.length === 0 ? (
               <div className="card text-center py-12">
                 <p className="text-gray-500 mb-4">Nenhuma vaga cadastrada no sistema ainda.</p>
-                <p className="text-sm text-gray-400 mb-4">As vagas físicas do estacionamento precisam ser registradas no sistema.</p>
-                <button onClick={handleCreateSpot} className="btn btn-primary">
-                  Cadastrar Primeira Vaga
-                </button>
+                <p className="text-sm text-gray-400">As vagas físicas do estacionamento são gerenciadas pelo sistema.</p>
               </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
