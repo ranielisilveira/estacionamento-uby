@@ -19,6 +19,8 @@ class Reservation extends Model
         'exit_time',
         'total_amount',
         'status',
+        'operator_notes',
+        'finalized_by_operator_id',
     ];
 
     protected function casts(): array
@@ -48,6 +50,11 @@ class Reservation extends Model
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class);
+    }
+
+    public function finalizedByOperator(): BelongsTo
+    {
+        return $this->belongsTo(Operator::class, 'finalized_by_operator_id');
     }
 
     public function scopeActive($query)
