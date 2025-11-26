@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Toaster, toast } from 'react-hot-toast';
 import { useAuthStore } from '../../application/stores/authStore';
 import { authApi } from '../../infrastructure/api/authApi';
 import { parkingApi } from '../../infrastructure/api/parkingApi';
@@ -7,6 +8,7 @@ import { ParkingSpotCard } from '../components/parking/ParkingSpotCard';
 import { ReservationCard } from '../components/parking/ReservationCard';
 import { VehicleFormModal } from '../components/vehicles/VehicleFormModal';
 import { VehicleSelectionModal } from '../components/parking/VehicleSelectionModal';
+import { ChatBox } from '../components/chat/ChatBox';
 import type { ParkingSpot, Reservation, Vehicle, Customer } from '../../domain/types';
 
 export function CustomerDashboard() {
@@ -64,7 +66,16 @@ export function CustomerDashboard() {
 
   const handleReserve = async (spotId: number) => {
     if (myVehicles.length === 0) {
-      alert('⚠️ Você precisa cadastrar um veículo primeiro!');
+      toast('Você precisa cadastrar um veículo primeiro!', {
+        icon: '⚠️',
+        duration: 4000,
+        style: {
+          background: '#FEF3C7',
+          color: '#92400E',
+          border: '2px solid #F59E0B',
+          fontWeight: '600',
+        },
+      });
       setActiveTab('vehicles');
       return;
     }
@@ -88,13 +99,13 @@ export function CustomerDashboard() {
         vehicle_id: vehicleId,
       });
       
-      alert('✅ Reserva criada com sucesso!');
+      toast.success('✅ Reserva criada com sucesso!');
       setSelectedSpot(null);
       loadData();
     } catch (err: any) {
       console.error('Erro ao criar reserva:', err);
       const errorMsg = err?.response?.data?.message || err?.message || 'Tente novamente';
-      alert('❌ Erro ao criar reserva: ' + errorMsg);
+      toast.error('❌ Erro ao criar reserva: ' + errorMsg);
     } finally {
       setIsReserving(false);
     }
@@ -105,11 +116,11 @@ export function CustomerDashboard() {
 
     try {
       await parkingApi.cancelReservation(id);
-      alert('✅ Reserva cancelada!');
+      toast.success('✅ Reserva cancelada!');
       loadData();
     } catch (err) {
       console.error('Erro ao cancelar:', err);
-      alert('❌ Erro ao cancelar reserva');
+      toast.error('❌ Erro ao cancelar reserva');
     }
   };
 
@@ -118,11 +129,11 @@ export function CustomerDashboard() {
 
     try {
       await parkingApi.checkoutReservation(id);
-      alert('✅ Checkout realizado com sucesso!');
+      toast.success('✅ Checkout realizado com sucesso!');
       loadData();
     } catch (err) {
       console.error('Erro ao fazer checkout:', err);
-      alert('❌ Erro ao fazer checkout');
+      toast.error('❌ Erro ao fazer checkout');
     }
   };
 
@@ -136,10 +147,10 @@ export function CustomerDashboard() {
     try {
       if (editingVehicle) {
         await vehicleApi.updateVehicle(editingVehicle.id, data);
-        alert('✅ Veículo atualizado com sucesso!');
+        toast.success('✅ Veículo atualizado com sucesso!');
       } else {
         await parkingApi.addVehicle(data);
-        alert('✅ Veículo cadastrado com sucesso!');
+        toast.success('✅ Veículo cadastrado com sucesso!');
       }
       setEditingVehicle(null);
       loadData();
@@ -164,7 +175,7 @@ export function CustomerDashboard() {
 
     try {
       await parkingApi.removeVehicle(id);
-      alert('✅ Veículo excluído com sucesso!');
+      toast.success('✅ Veículo excluído com sucesso!');
       loadData();
     } catch (err: any) {
       console.error('Erro ao excluir veículo:', err);
@@ -172,11 +183,11 @@ export function CustomerDashboard() {
       const errorMessage = err?.response?.data?.message;
       
       if (errorMessage) {
-        alert(`❌ ${errorMessage}`);
+        toast.error(`❌ ${errorMessage}`);
       } else if (err?.response?.status === 500) {
-        alert('❌ Não foi possível excluir o veículo. Verifique se ele possui reservas associadas.');
+        toast.error('❌ Não foi possível excluir o veículo. Verifique se ele possui reservas associadas.');
       } else {
-        alert('❌ Erro ao excluir veículo');
+        toast.error('❌ Erro ao excluir veículo');
       }
     }
   };
@@ -439,6 +450,19 @@ export function CustomerDashboard() {
         onSelect={handleVehicleSelected}
         spot={selectedSpot}
       />
+
+      {/* Toast Notifications */}
+      <Toaster position="top-right" />
+
+      {/* Chat Component */}
+      {customer && (
+        <ChatBox
+          userId={customer.id}
+          userName={customer.name}
+          userType="customer"
+          token={localStorage.getItem('auth_token') || ''}
+        />
+      )}
     </div>
   );
 }

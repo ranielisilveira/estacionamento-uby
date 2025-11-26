@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Toaster, toast } from 'react-hot-toast';
 import { useAuthStore } from '../../application/stores/authStore';
 import { authApi } from '../../infrastructure/api/authApi';
 import { operatorApi } from '../../infrastructure/api/operatorApi';
@@ -6,6 +7,7 @@ import { ParkingSpotManagementCard } from '../components/operator/ParkingSpotMan
 import { SpotFormModal } from '../components/operator/SpotFormModal';
 import { FinishReservationModal } from '../components/operator/FinishReservationModal';
 import { ReservationCard } from '../components/parking/ReservationCard';
+import { OperatorChatPanel } from '../components/chat/OperatorChatPanel';
 import type { Operator, ParkingSpot, Reservation } from '../../domain/types';
 
 export function OperatorDashboard() {
@@ -79,35 +81,37 @@ export function OperatorDashboard() {
   };
 
   const handleDeleteSpot = async (spotId: number) => {
-    if (!window.confirm('Tem certeza que deseja excluir esta vaga?')) return;
+    if (!confirm('Tem certeza que deseja excluir esta vaga?')) return;
     
     try {
       await operatorApi.deleteSpot(spotId);
+      toast.success('✅ Vaga excluída com sucesso!');
       await loadData();
     } catch (err) {
       console.error('Erro ao excluir vaga:', err);
-      window.alert('Erro ao excluir vaga. Verifique se não há reservas ativas.');
+      toast.error('❌ Erro ao excluir vaga. Verifique se não há reservas ativas.');
     }
   };
 
   const handleToggleStatus = async (spotId: number, newStatus: string) => {
     try {
-      // Verificar se há reserva ativa na vaga
+      
       const activeReservation = await operatorApi.getActiveReservationBySpot(spotId);
       
       if (activeReservation) {
-        // Há reserva ativa - mostrar modal de confirmação
+        
         setPendingSpotUpdate({ spotId, newStatus });
         setActiveReservationToFinish(activeReservation);
         setIsFinishModalOpen(true);
       } else {
-        // Não há reserva ativa - pode alterar status diretamente
+        
         await operatorApi.updateSpot(spotId, { status: newStatus });
+        toast.success('✅ Status atualizado com sucesso!');
         await loadData();
       }
     } catch (err) {
       console.error('Erro ao atualizar status:', err);
-      window.alert('Erro ao verificar reserva ativa. Tente novamente.');
+      toast.error('❌ Erro ao verificar reserva ativa. Tente novamente.');
     }
   };
 
@@ -115,24 +119,25 @@ export function OperatorDashboard() {
     if (!activeReservationToFinish || !pendingSpotUpdate) return;
 
     try {
-      // 1. Finalizar a reserva com observações do operador
+      
       await operatorApi.finalizeReservation(activeReservationToFinish.id, notes);
       
-      // 2. Atualizar o status da vaga
+      
       await operatorApi.updateSpot(pendingSpotUpdate.spotId, { 
         status: pendingSpotUpdate.newStatus 
       });
       
-      // 3. Recarregar dados
+      
+      toast.success('✅ Reserva finalizada com sucesso!');
       await loadData();
       
-      // 4. Limpar estados
+      
       setIsFinishModalOpen(false);
       setActiveReservationToFinish(null);
       setPendingSpotUpdate(null);
     } catch (err) {
       console.error('Erro ao finalizar reserva:', err);
-      window.alert('Erro ao finalizar reserva. Tente novamente.');
+      toast.error('❌ Erro ao finalizar reserva. Tente novamente.');
     }
   };
 
@@ -385,8 +390,16 @@ export function OperatorDashboard() {
                     key={reservation.id}
                     reservation={reservation}
                     onCheckout={async () => {
-                      // Operador não faz checkout, apenas visualiza
-                      window.alert('Checkout deve ser feito pelo cliente.');
+                      toast('Checkout deve ser feito pelo cliente', {
+                        icon: 'ℹ️',
+                        duration: 3000,
+                        style: {
+                          background: '#DBEAFE',
+                          color: '#1E40AF',
+                          border: '2px solid #3B82F6',
+                          fontWeight: '600',
+                        },
+                      });
                     }}
                   />
                 ))}
@@ -415,6 +428,18 @@ export function OperatorDashboard() {
         }}
         onConfirm={handleConfirmFinishReservation}
       />
+
+      {/* Toast Notifications */}
+      <Toaster position="top-right" />
+
+      {/* Operator Chat Panel */}
+      {operator && (
+        <OperatorChatPanel
+          operatorId={operator.id}
+          operatorName={operator.name}
+          token={localStorage.getItem('auth_token') || ''}
+        />
+      )}
     </div>
   );
 }
