@@ -25,7 +25,7 @@
                     "Authentication"
                 ],
                 "summary": "Registrar novo cliente",
-                "description": "Cria uma nova conta de cliente no sistema com endereço completo",
+                "description": "Cria uma nova conta de cliente e envia email de verificação. O cliente precisa verificar o email antes de fazer login.",
                 "operationId": "registerCustomer",
                 "requestBody": {
                     "description": "Dados do cliente",
@@ -38,7 +38,13 @@
                                     "email",
                                     "cpf",
                                     "password",
-                                    "password_confirmation"
+                                    "password_confirmation",
+                                    "zip_code",
+                                    "street",
+                                    "number",
+                                    "neighborhood",
+                                    "city",
+                                    "state"
                                 ],
                                 "properties": {
                                     "name": {
@@ -56,11 +62,6 @@
                                         "description": "CPF com 11 dígitos (sem pontos)",
                                         "type": "string",
                                         "example": "12345678900"
-                                    },
-                                    "rg": {
-                                        "description": "RG (opcional)",
-                                        "type": "string",
-                                        "example": "123456789"
                                     },
                                     "password": {
                                         "description": "Senha (mínimo 8 caracteres)",
@@ -121,14 +122,78 @@
                     }
                 },
                 "responses": {
+                    "201": {
+                        "description": "Cliente registrado com sucesso, email de verificação enviado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cadastro realizado com sucesso! Verifique seu email para ativar sua conta."
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "example": "joao.silva@email.com"
+                                        },
+                                        "requires_verification": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dados inválidos"
+                    }
+                }
+            }
+        },
+        "/api/v1/customers/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login de cliente",
+                "description": "Autentica um cliente e retorna token de acesso. O email precisa estar verificado.",
+                "operationId": "loginCustomer",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "joao.silva@email.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
                     "200": {
-                        "description": "Cliente registrado com sucesso",
+                        "description": "Login realizado com sucesso",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "token": {
-                                            "description": "Token de autenticação Sanctum",
                                             "type": "string",
                                             "example": "1|abc123..."
                                         },
@@ -168,7 +233,130 @@
                         }
                     },
                     "422": {
-                        "description": "Dados inválidos"
+                        "description": "Credenciais inválidas ou email não verificado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Por favor, verifique seu email antes de fazer login."
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "email": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/customers/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout de cliente",
+                "description": "Revoga o token de acesso atual do cliente",
+                "operationId": "logoutCustomer",
+                "responses": {
+                    "200": {
+                        "description": "Logout realizado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Logout realizado com sucesso"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/email/resend": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Reenviar email de verificação",
+                "description": "Reenvia o email de verificação para clientes ou operadores",
+                "operationId": "resendVerificationEmail",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "type"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "joao.silva@email.com"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "customer",
+                                            "operator"
+                                        ],
+                                        "example": "customer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Email reenviado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Email de verificação reenviado com sucesso."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Email já está verificado"
+                    },
+                    "404": {
+                        "description": "Usuário não encontrado"
                     }
                 }
             }
@@ -176,11 +364,11 @@
         "/api/v1/customers/me": {
             "get": {
                 "tags": [
-                    "Customers"
+                    "Authentication"
                 ],
                 "summary": "Obter dados do cliente autenticado",
-                "description": "Retorna os dados completos do cliente logado incluindo endereço",
-                "operationId": "getCurrentCustomer",
+                "description": "Retorna os dados completos do cliente autenticado incluindo endereço",
+                "operationId": "getAuthenticatedCustomer",
                 "responses": {
                     "200": {
                         "description": "Dados do cliente",
@@ -188,68 +376,60 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "data": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "João Silva"
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "example": "joao.silva@email.com"
+                                        },
+                                        "cpf": {
+                                            "type": "string",
+                                            "example": "12345678900"
+                                        },
+                                        "phone": {
+                                            "type": "string",
+                                            "example": "11999999999"
+                                        },
+                                        "email_verified_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2024-01-15T10:30:00.000000Z"
+                                        },
+                                        "address": {
                                             "properties": {
-                                                "id": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "name": {
+                                                "zip_code": {
                                                     "type": "string",
-                                                    "example": "João Silva"
+                                                    "example": "01310100"
                                                 },
-                                                "email": {
+                                                "street": {
                                                     "type": "string",
-                                                    "example": "joao.silva@email.com"
+                                                    "example": "Av Paulista"
                                                 },
-                                                "cpf": {
+                                                "number": {
                                                     "type": "string",
-                                                    "example": "12345678900"
+                                                    "example": "1000"
                                                 },
-                                                "rg": {
+                                                "complement": {
                                                     "type": "string",
-                                                    "example": "123456789"
+                                                    "nullable": true
                                                 },
-                                                "phone": {
+                                                "neighborhood": {
                                                     "type": "string",
-                                                    "example": "11999999999"
+                                                    "example": "Bela Vista"
                                                 },
-                                                "type": {
+                                                "city": {
                                                     "type": "string",
-                                                    "example": "customer"
+                                                    "example": "São Paulo"
                                                 },
-                                                "address": {
-                                                    "properties": {
-                                                        "zip_code": {
-                                                            "type": "string",
-                                                            "example": "01310100"
-                                                        },
-                                                        "street": {
-                                                            "type": "string",
-                                                            "example": "Av Paulista"
-                                                        },
-                                                        "number": {
-                                                            "type": "string",
-                                                            "example": "1000"
-                                                        },
-                                                        "complement": {
-                                                            "type": "string",
-                                                            "nullable": true
-                                                        },
-                                                        "neighborhood": {
-                                                            "type": "string",
-                                                            "example": "Bela Vista"
-                                                        },
-                                                        "city": {
-                                                            "type": "string",
-                                                            "example": "São Paulo"
-                                                        },
-                                                        "state": {
-                                                            "type": "string",
-                                                            "example": "SP"
-                                                        }
-                                                    },
-                                                    "type": "object"
+                                                "state": {
+                                                    "type": "string",
+                                                    "example": "SP"
                                                 }
                                             },
                                             "type": "object"
@@ -593,6 +773,54 @@
             }
         },
         "/api/v1/reservations": {
+            "get": {
+                "tags": [
+                    "Reservations"
+                ],
+                "summary": "Listar reservas",
+                "description": "Lista todas as reservas do cliente ou operador autenticado",
+                "operationId": "listReservations",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filtrar por status",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "active",
+                                "completed",
+                                "cancelled"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de reservas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
             "post": {
                 "tags": [
                     "Reservations"
@@ -1054,6 +1282,1466 @@
                     }
                 }
             }
+        },
+        "/api/v1/operators/register": {
+            "post": {
+                "tags": [
+                    "Operators"
+                ],
+                "summary": "Registrar novo operador",
+                "description": "Cria uma nova conta de operador e envia email de verificação",
+                "operationId": "registerOperator",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Maria Operadora"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "maria@email.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    },
+                                    "phone": {
+                                        "description": "Telefone (opcional)",
+                                        "type": "string",
+                                        "example": "11988888888"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Operador registrado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "email": {
+                                            "type": "string"
+                                        },
+                                        "requires_verification": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Dados inválidos"
+                    }
+                }
+            }
+        },
+        "/api/v1/operators/login": {
+            "post": {
+                "tags": [
+                    "Operators"
+                ],
+                "summary": "Login de operador",
+                "description": "Autentica um operador e retorna token de acesso",
+                "operationId": "loginOperator",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "maria@email.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login realizado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "token": {
+                                            "type": "string"
+                                        },
+                                        "user": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "email": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "example": "operator"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Credenciais inválidas"
+                    }
+                }
+            }
+        },
+        "/api/v1/operators/logout": {
+            "post": {
+                "tags": [
+                    "Operators"
+                ],
+                "summary": "Logout de operador",
+                "description": "Revoga o token de acesso atual do operador",
+                "operationId": "logoutOperator",
+                "responses": {
+                    "200": {
+                        "description": "Logout realizado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Logout realizado com sucesso"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/operators/me": {
+            "get": {
+                "tags": [
+                    "Operators"
+                ],
+                "summary": "Obter dados do operador autenticado",
+                "description": "Retorna os dados completos do operador autenticado",
+                "operationId": "getAuthenticatedOperator",
+                "responses": {
+                    "200": {
+                        "description": "Dados do operador",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "email": {
+                                            "type": "string"
+                                        },
+                                        "phone": {
+                                            "type": "string"
+                                        },
+                                        "email_verified_at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/operators/stats": {
+            "get": {
+                "tags": [
+                    "Operators"
+                ],
+                "summary": "Obter estatísticas do operador",
+                "description": "Retorna estatísticas de vagas gerenciadas pelo operador autenticado",
+                "operationId": "getOperatorStats",
+                "responses": {
+                    "200": {
+                        "description": "Estatísticas do operador",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "total_spots": {
+                                            "type": "integer",
+                                            "example": 10
+                                        },
+                                        "available_spots": {
+                                            "type": "integer",
+                                            "example": 7
+                                        },
+                                        "occupied_spots": {
+                                            "type": "integer",
+                                            "example": 3
+                                        },
+                                        "reserved_spots": {
+                                            "type": "integer",
+                                            "example": 0
+                                        },
+                                        "total_reservations": {
+                                            "type": "integer",
+                                            "example": 50
+                                        },
+                                        "active_reservations": {
+                                            "type": "integer",
+                                            "example": 3
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/operators": {
+            "get": {
+                "tags": [
+                    "Operators"
+                ],
+                "summary": "Listar operadores",
+                "description": "Lista todos os operadores cadastrados",
+                "operationId": "listOperators",
+                "responses": {
+                    "200": {
+                        "description": "Lista de operadores",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Operators"
+                ],
+                "summary": "Criar operador",
+                "description": "Cria um novo operador (admin)",
+                "operationId": "storeOperator",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Operador criado"
+                    },
+                    "422": {
+                        "description": "Dados inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/operators/{id}": {
+            "get": {
+                "tags": [
+                    "Operators"
+                ],
+                "summary": "Exibir operador",
+                "description": "Retorna dados de um operador específico",
+                "operationId": "showOperator",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dados do operador"
+                    },
+                    "404": {
+                        "description": "Operador não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Operators"
+                ],
+                "summary": "Atualizar operador",
+                "description": "Atualiza dados de um operador",
+                "operationId": "updateOperator",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Operador atualizado"
+                    },
+                    "404": {
+                        "description": "Operador não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Operators"
+                ],
+                "summary": "Deletar operador",
+                "description": "Remove um operador do sistema",
+                "operationId": "deleteOperator",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Operador deletado"
+                    },
+                    "404": {
+                        "description": "Operador não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/customers": {
+            "get": {
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Listar clientes",
+                "description": "Lista todos os clientes cadastrados",
+                "operationId": "listCustomers",
+                "responses": {
+                    "200": {
+                        "description": "Lista de clientes",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Criar cliente",
+                "description": "Cria um novo cliente (admin)",
+                "operationId": "storeCustomer",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "cpf",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "cpf": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "zip_code": {
+                                        "type": "string"
+                                    },
+                                    "street": {
+                                        "type": "string"
+                                    },
+                                    "number": {
+                                        "type": "string"
+                                    },
+                                    "complement": {
+                                        "type": "string"
+                                    },
+                                    "neighborhood": {
+                                        "type": "string"
+                                    },
+                                    "city": {
+                                        "type": "string"
+                                    },
+                                    "state": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Cliente criado"
+                    },
+                    "422": {
+                        "description": "Dados inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/customers/{id}": {
+            "get": {
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Exibir cliente",
+                "description": "Retorna dados de um cliente específico",
+                "operationId": "showCustomer",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dados do cliente"
+                    },
+                    "404": {
+                        "description": "Cliente não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Atualizar cliente",
+                "description": "Atualiza dados de um cliente",
+                "operationId": "updateCustomer",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "zip_code": {
+                                        "type": "string"
+                                    },
+                                    "street": {
+                                        "type": "string"
+                                    },
+                                    "number": {
+                                        "type": "string"
+                                    },
+                                    "complement": {
+                                        "type": "string"
+                                    },
+                                    "neighborhood": {
+                                        "type": "string"
+                                    },
+                                    "city": {
+                                        "type": "string"
+                                    },
+                                    "state": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cliente atualizado"
+                    },
+                    "404": {
+                        "description": "Cliente não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Deletar cliente",
+                "description": "Remove um cliente do sistema",
+                "operationId": "deleteCustomer",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Cliente deletado"
+                    },
+                    "404": {
+                        "description": "Cliente não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/vehicles/{id}": {
+            "get": {
+                "tags": [
+                    "Vehicles"
+                ],
+                "summary": "Exibir veículo",
+                "description": "Retorna dados de um veículo específico",
+                "operationId": "showVehicle",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dados do veículo"
+                    },
+                    "404": {
+                        "description": "Veículo não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Vehicles"
+                ],
+                "summary": "Atualizar veículo",
+                "description": "Atualiza dados de um veículo",
+                "operationId": "updateVehicle",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "license_plate": {
+                                        "type": "string"
+                                    },
+                                    "brand": {
+                                        "type": "string"
+                                    },
+                                    "model": {
+                                        "type": "string"
+                                    },
+                                    "color": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "car",
+                                            "motorcycle",
+                                            "truck"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Veículo atualizado"
+                    },
+                    "404": {
+                        "description": "Veículo não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Vehicles"
+                ],
+                "summary": "Deletar veículo",
+                "description": "Remove um veículo do sistema",
+                "operationId": "deleteVehicle",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Veículo deletado"
+                    },
+                    "404": {
+                        "description": "Veículo não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/parking-spots-available": {
+            "get": {
+                "tags": [
+                    "Parking Spots"
+                ],
+                "summary": "Listar vagas disponíveis (público)",
+                "description": "Lista vagas disponíveis para reserva. Não requer autenticação",
+                "operationId": "listAvailableParkingSpots",
+                "responses": {
+                    "200": {
+                        "description": "Lista de vagas disponíveis",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/parking-spots/{id}": {
+            "get": {
+                "tags": [
+                    "Parking Spots"
+                ],
+                "summary": "Exibir vaga",
+                "description": "Retorna dados de uma vaga específica",
+                "operationId": "showParkingSpot",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dados da vaga"
+                    },
+                    "404": {
+                        "description": "Vaga não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Parking Spots"
+                ],
+                "summary": "Atualizar vaga",
+                "description": "Atualiza dados de uma vaga",
+                "operationId": "updateParkingSpot",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "number": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "regular",
+                                            "vip",
+                                            "disabled"
+                                        ]
+                                    },
+                                    "hourly_price": {
+                                        "type": "number"
+                                    },
+                                    "width": {
+                                        "type": "number"
+                                    },
+                                    "length": {
+                                        "type": "number"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "available",
+                                            "occupied",
+                                            "reserved"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Vaga atualizada"
+                    },
+                    "404": {
+                        "description": "Vaga não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Parking Spots"
+                ],
+                "summary": "Deletar vaga",
+                "description": "Remove uma vaga do sistema",
+                "operationId": "deleteParkingSpot",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Vaga deletada"
+                    },
+                    "404": {
+                        "description": "Vaga não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/reservations/{id}": {
+            "get": {
+                "tags": [
+                    "Reservations"
+                ],
+                "summary": "Exibir reserva",
+                "description": "Retorna dados de uma reserva específica",
+                "operationId": "showReservation",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dados da reserva"
+                    },
+                    "404": {
+                        "description": "Reserva não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/reservations/{id}/cancel": {
+            "post": {
+                "tags": [
+                    "Reservations"
+                ],
+                "summary": "Cancelar reserva",
+                "description": "Cancela uma reserva ativa. A vaga volta para status available",
+                "operationId": "cancelReservation",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reserva cancelada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Reserva cancelada com sucesso"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Reserva não encontrada"
+                    },
+                    "400": {
+                        "description": "Reserva não pode ser cancelada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/reservations/{id}/operator-finalize": {
+            "post": {
+                "tags": [
+                    "Reservations"
+                ],
+                "summary": "Finalizar reserva (operador)",
+                "description": "Operador finaliza uma reserva manualmente, calculando o valor",
+                "operationId": "operatorFinalizeReservation",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "exit_time": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Reserva finalizada"
+                    },
+                    "404": {
+                        "description": "Reserva não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/reservations/search": {
+            "get": {
+                "tags": [
+                    "Reservations"
+                ],
+                "summary": "Buscar reserva por placa",
+                "description": "Busca reservas ativas pelo número da placa do veículo",
+                "operationId": "searchReservationByPlate",
+                "parameters": [
+                    {
+                        "name": "license_plate",
+                        "in": "query",
+                        "description": "Placa do veículo",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "ABC1D234"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reserva encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Reserva não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/reservations/active-by-spot/{spotId}": {
+            "get": {
+                "tags": [
+                    "Reservations"
+                ],
+                "summary": "Buscar reserva ativa por vaga",
+                "description": "Retorna a reserva ativa de uma vaga específica",
+                "operationId": "getActiveReservationBySpot",
+                "parameters": [
+                    {
+                        "name": "spotId",
+                        "in": "path",
+                        "description": "ID da vaga",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reserva ativa encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Nenhuma reserva ativa encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/payments/{id}": {
+            "get": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Exibir pagamento",
+                "description": "Retorna dados de um pagamento específico",
+                "operationId": "showPayment",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dados do pagamento"
+                    },
+                    "404": {
+                        "description": "Pagamento não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Deletar pagamento",
+                "description": "Remove um pagamento do sistema",
+                "operationId": "deletePayment",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Pagamento deletado"
+                    },
+                    "404": {
+                        "description": "Pagamento não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/email/verify/{id}/{hash}": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Verificar email",
+                "description": "Verifica o email através do link enviado por email",
+                "operationId": "verifyEmail",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do usuário",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "hash",
+                        "in": "path",
+                        "description": "Hash de verificação",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Tipo de usuário",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "customer",
+                                "operator"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redireciona para página de sucesso/erro no frontend"
+                    },
+                    "400": {
+                        "description": "Link inválido ou expirado"
+                    }
+                }
+            }
+        },
+        "/api/v1/address/{zipCode}": {
+            "get": {
+                "tags": [
+                    "Utils"
+                ],
+                "summary": "Buscar endereço por CEP",
+                "description": "Consulta dados de endereço através do CEP (via ViaCEP)",
+                "operationId": "getAddressByZipCodePublic",
+                "parameters": [
+                    {
+                        "name": "zipCode",
+                        "in": "path",
+                        "description": "CEP com 8 dígitos",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "01310100"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dados do endereço",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "zip_code": {
+                                            "type": "string"
+                                        },
+                                        "street": {
+                                            "type": "string"
+                                        },
+                                        "neighborhood": {
+                                            "type": "string"
+                                        },
+                                        "city": {
+                                            "type": "string"
+                                        },
+                                        "state": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "CEP não encontrado"
+                    }
+                }
+            }
+        },
+        "/api/v1/health": {
+            "get": {
+                "tags": [
+                    "Utils"
+                ],
+                "summary": "Health check",
+                "description": "Endpoint para verificar se a API está funcionando",
+                "operationId": "healthCheck",
+                "responses": {
+                    "200": {
+                        "description": "API está funcionando",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "ok"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -1094,6 +2782,10 @@
         {
             "name": "Utils",
             "description": "Utilitários (ViaCEP, etc)"
+        },
+        {
+            "name": "Operators",
+            "description": "Operators"
         }
     ]
 }
