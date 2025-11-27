@@ -102,7 +102,7 @@ export function FinishReservationModal({
                 <div className="flex justify-between">
                   <span className="text-blue-700">Valor estimado:</span>
                   <span className="font-semibold text-blue-900">
-                    R$ {(reservation.estimated_price || 0).toFixed(2)}
+                    R$ {(reservation.total_price || 0).toFixed(2)}
                   </span>
                 </div>
               </div>

@@ -23,7 +23,7 @@ interface RegisterData {
 }
 
 interface OperatorLoginCredentials {
-  registration_number: string;
+  email: string;
   password: string;
 }
 

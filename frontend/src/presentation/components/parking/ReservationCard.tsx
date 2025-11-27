@@ -8,15 +8,14 @@ interface ReservationCardProps {
 }
 
 const statusLabel: Record<string, { label: string; color: string }> = {
-  pending: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800' },
   active: { label: 'Ativa', color: 'bg-green-100 text-green-800' },
   completed: { label: 'Finalizada', color: 'bg-blue-100 text-blue-800' },
   cancelled: { label: 'Cancelada', color: 'bg-red-100 text-red-800' },
 };
 
 export function ReservationCard({ reservation, onCancel, onCheckout }: ReservationCardProps) {
-  const status = statusLabel[reservation.status] || statusLabel.pending;
-  const canCancel = reservation.status === 'pending' || reservation.status === 'active';
+  const status = statusLabel[reservation.status] || statusLabel.active;
+  const canCancel = reservation.status === 'active';
   const canCheckout = reservation.status === 'active';
   
   const [currentCost, setCurrentCost] = useState(0);

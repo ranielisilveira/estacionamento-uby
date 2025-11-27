@@ -44,14 +44,16 @@ export function OperatorDashboard() {
         operatorApi.getAllSpots(),
         operatorApi.getAllReservations(),
         operatorApi.getStats(),
-      ]).catch(err => {
-        console.error('Erro ao carregar dados:', err);
-        return [[], [], { totalSpots: 0, availableSpots: 0, activeReservations: 0, todayRevenue: 0 }];
-      });
+      ]);
       
-      setSpots(spotsData);
-      setReservations(reservationsData);
-      setStats(statsData);
+      setSpots(Array.isArray(spotsData) ? spotsData : []);
+      setReservations(Array.isArray(reservationsData) ? reservationsData : []);
+      setStats(typeof statsData === 'object' && 'totalSpots' in statsData ? statsData : {
+        totalSpots: 0,
+        availableSpots: 0,
+        activeReservations: 0,
+        todayRevenue: 0,
+      });
     } catch (err) {
       console.error('Erro ao carregar dados:', err);
     } finally {
@@ -68,11 +70,6 @@ export function OperatorDashboard() {
       clearAuth();
       window.location.href = '/login';
     }
-  };
-
-  const handleCreateSpot = () => {
-    setEditingSpot(null);
-    setIsModalOpen(true);
   };
 
   const handleEditSpot = (spot: ParkingSpot) => {
@@ -105,7 +102,7 @@ export function OperatorDashboard() {
         setIsFinishModalOpen(true);
       } else {
         
-        await operatorApi.updateSpot(spotId, { status: newStatus });
+        await operatorApi.updateSpot(spotId, { status: newStatus as 'available' | 'occupied' | 'reserved' | 'maintenance' });
         toast.success('✅ Status atualizado com sucesso!');
         await loadData();
       }
@@ -124,7 +121,7 @@ export function OperatorDashboard() {
       
       
       await operatorApi.updateSpot(pendingSpotUpdate.spotId, { 
-        status: pendingSpotUpdate.newStatus 
+        status: pendingSpotUpdate.newStatus as 'available' | 'occupied' | 'reserved' | 'maintenance'
       });
       
       
@@ -389,6 +386,7 @@ export function OperatorDashboard() {
                   <ReservationCard
                     key={reservation.id}
                     reservation={reservation}
+                    onCancel={() => {}}
                     onCheckout={async () => {
                       toast('Checkout deve ser feito pelo cliente', {
                         icon: 'ℹ️',

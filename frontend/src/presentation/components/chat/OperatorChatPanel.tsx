@@ -9,6 +9,8 @@ interface Message {
   senderType: 'customer' | 'operator';
   message: string;
   timestamp: string;
+  recipientId?: number;
+  customerId?: number;
 }
 
 interface Conversation {
@@ -26,7 +28,7 @@ interface OperatorChatPanelProps {
   token: string;
 }
 
-export function OperatorChatPanel({ operatorId, operatorName, token }: OperatorChatPanelProps) {
+export function OperatorChatPanel({ token }: OperatorChatPanelProps) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [conversations, setConversations] = useState<Map<number, Conversation>>(new Map());
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
@@ -51,7 +53,7 @@ export function OperatorChatPanel({ operatorId, operatorName, token }: OperatorC
       newSocket.emit('loadHistory', {});
     });
 
-    newSocket.on('connect_error', (error) => {
+    newSocket.on('connect_error', () => {
       setIsConnected(false);
       toast.error('Erro ao conectar chat');
     });
@@ -65,7 +67,7 @@ export function OperatorChatPanel({ operatorId, operatorName, token }: OperatorC
       if (message.senderType === 'customer') {
         customerId = message.senderId;
       } else if (message.senderType === 'operator') {
-        customerId = message.recipientId || 0;
+        customerId = message.recipientId ?? 0;
       } else {
         return;
       }
@@ -126,8 +128,8 @@ export function OperatorChatPanel({ operatorId, operatorName, token }: OperatorC
         const newConversations = new Map(prev);
         
         messages.forEach(msg => {
-          const customerId = msg.customerId || 
-            (msg.senderType === 'customer' ? msg.senderId : msg.recipientId);
+          const customerId = msg.customerId ?? 
+            (msg.senderType === 'customer' ? msg.senderId : msg.recipientId ?? 0);
           
           if (!customerId || customerId === 0) {
             return;

@@ -39,6 +39,7 @@ export interface Vehicle {
   model: string;
   color: string;
   vehicle_type: VehicleType;
+  type?: VehicleType;
 }
 
 export interface ParkingSpot {
@@ -98,6 +99,17 @@ export interface ChatMessage {
   message: string;
   sent_at: string;
   read_at: string | null;
+}
+
+export interface Message {
+  id?: number;
+  senderId: number;
+  senderType: 'customer' | 'operator';
+  senderName: string;
+  recipientId?: number;
+  message: string;
+  timestamp: string;
+  customerId?: number;
 }
 
 export interface AuthResponse {

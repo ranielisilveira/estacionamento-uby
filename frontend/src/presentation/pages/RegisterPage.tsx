@@ -72,8 +72,10 @@ export function RegisterPage() {
         }, 2000);
       } else {
         const { user, token } = response;
-        setAuth(user, token);
-        window.location.href = '/customer/dashboard';
+        if (user && token) {
+          setAuth(user, token);
+          window.location.href = '/customer/dashboard';
+        }
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao cadastrar';

@@ -19,7 +19,7 @@ interface ChatBoxProps {
   recipientName?: string;
 }
 
-export function ChatBox({ userId, userName, userType, token, recipientId, recipientName }: ChatBoxProps) {
+export function ChatBox({ userId, userType, token, recipientId, recipientName }: ChatBoxProps) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -43,7 +43,7 @@ export function ChatBox({ userId, userName, userType, token, recipientId, recipi
       newSocket.emit('loadHistory', {});
     });
 
-    newSocket.on('connect_error', (error) => {
+    newSocket.on('connect_error', () => {
       setIsConnected(false);
     });
 
@@ -63,7 +63,7 @@ export function ChatBox({ userId, userName, userType, token, recipientId, recipi
       setMessages(history);
     });
 
-    newSocket.on('error', (error: any) => {
+    newSocket.on('error', () => {
     });
 
     setSocket(newSocket);

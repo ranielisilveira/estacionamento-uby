@@ -19,14 +19,12 @@ export function LoginPage() {
 
     try {
       let user, token;
-      let lastError: any = null;
       
       try {
         const customerResponse = await authApi.login({ email, password });
         user = customerResponse.user;
         token = customerResponse.token;
       } catch (customerError: any) {
-        lastError = customerError;
         
         try {
           const operatorResponse = await authApi.operatorLogin({ email, password });
@@ -42,6 +40,10 @@ export function LoginPage() {
           
           throw new Error('Email ou senha inválidos');
         }
+      }
+
+      if (!user || !token) {
+        throw new Error('Falha na autenticação');
       }
 
       setAuth(user, token);
@@ -132,12 +134,12 @@ export function LoginPage() {
                   Cadastre-se
                 </a>
               </p>
-              <p className="text-sm text-gray-600">
+              {/* <p className="text-sm text-gray-600">
                 É operador?{' '}
-                <a href="/operator/login" className="text-primary-600 hover:text-primary-700 font-medium">
+                <a href="/login" className="text-primary-600 hover:text-primary-700 font-medium">
                   Clique aqui
                 </a>
-              </p>
+              </p> */}
             </div>
           </form>
         </div>
