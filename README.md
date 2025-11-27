@@ -19,6 +19,9 @@ Sistema desenvolvido para gestão completa de estacionamento, incluindo:
 git clone https://github.com/ranielisilveira/estacionamento-uby.git
 cd estacionamento-uby
 
+# ⚠️ IMPORTANTE: Pare outros containers Docker para evitar conflitos de portas
+docker stop $(docker ps -aq) 2>/dev/null || true
+
 # Inicie todos os serviços
 docker-compose up -d
 
@@ -28,6 +31,8 @@ docker-compose up -d
 # Swagger Docs: http://localhost:8000/api/documentation
 # MailHog: http://localhost:8025
 ```
+
+> **💡 Dica:** Se encontrar erros de portas já em uso, execute `docker-compose down` seguido de `docker stop $(docker ps -aq)` para liberar todas as portas.
 
 ## 📚 Documentação
 
