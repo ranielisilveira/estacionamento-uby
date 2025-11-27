@@ -27,7 +27,8 @@ RUN docker-php-ext-install \
     zip \
     bcmath \
     mbstring \
-    opcache
+    opcache \
+    intl
 
 # Instalar Redis extension
 RUN apk add --no-cache pcre-dev $PHPIZE_DEPS \

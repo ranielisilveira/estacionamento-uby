@@ -7,6 +7,15 @@ NC='\033[0m' # No Color
 
 echo "${GREEN}🚀 Iniciando backend Laravel...${NC}"
 
+# Verificar e instalar dependências do Composer
+if [ ! -d "vendor" ] || [ ! -f "vendor/autoload.php" ]; then
+    echo "${YELLOW}📦 Pasta vendor não encontrada. Instalando dependências do Composer...${NC}"
+    composer install --no-interaction --optimize-autoloader --no-dev
+    echo "${GREEN}✅ Dependências instaladas com sucesso!${NC}"
+else
+    echo "${GREEN}✅ Dependências do Composer já instaladas.${NC}"
+fi
+
 # Copiar .env.example para .env se não existir
 if [ ! -f .env ]; then
     echo "${YELLOW}📝 Arquivo .env não encontrado. Copiando de .env.example...${NC}"
