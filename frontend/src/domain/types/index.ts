@@ -100,10 +100,12 @@ export interface ChatMessage {
   read_at: string | null;
 }
 
-// API Response types
 export interface AuthResponse {
-  user: Customer | Operator;
-  token: string;
+  user?: Customer | Operator;
+  token?: string;
+  message?: string;
+  email?: string;
+  requires_verification?: boolean;
 }
 
 export interface ApiResponse<T = any> {
