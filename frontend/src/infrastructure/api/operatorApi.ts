@@ -2,7 +2,6 @@ import { httpClient } from './httpClient';
 import type { ApiResponse, ParkingSpot, Reservation } from '../../domain/types';
 
 export const operatorApi = {
-  // Estatísticas do dashboard
   async getStats(): Promise<{
     totalSpots: number;
     availableSpots: number;
@@ -23,13 +22,11 @@ export const operatorApi = {
     };
   },
 
-  // Listar todas as vagas
   async getAllSpots(): Promise<ParkingSpot[]> {
     const response = await httpClient.get<ApiResponse<ParkingSpot[]>>('/parking-spots');
     return response.data.data;
   },
 
-  // Criar vaga
   async createSpot(data: {
     number: string;
     type: 'regular' | 'vip' | 'disabled';
@@ -41,18 +38,15 @@ export const operatorApi = {
     return response.data.data;
   },
 
-  // Atualizar vaga
   async updateSpot(id: number, data: Partial<ParkingSpot>): Promise<ParkingSpot> {
     const response = await httpClient.put<ApiResponse<ParkingSpot>>(`/parking-spots/${id}`, data);
     return response.data.data;
   },
 
-  // Deletar vaga
   async deleteSpot(id: number): Promise<void> {
     await httpClient.delete(`/parking-spots/${id}`);
   },
 
-  // Listar todas as reservas
   async getAllReservations(filters?: {
     status?: 'active' | 'completed' | 'cancelled';
     date?: string;
@@ -67,7 +61,6 @@ export const operatorApi = {
     return response.data.data;
   },
 
-  // Buscar por placa
   async searchByPlate(plate: string): Promise<Reservation[]> {
     const response = await httpClient.get<ApiResponse<Reservation[]>>(
       `/reservations/search?plate=${plate}`
@@ -75,7 +68,6 @@ export const operatorApi = {
     return response.data.data;
   },
 
-  // Buscar reserva ativa por vaga
   async getActiveReservationBySpot(spotId: number): Promise<Reservation | null> {
     try {
       const response = await httpClient.get<ApiResponse<Reservation>>(
@@ -83,7 +75,6 @@ export const operatorApi = {
       );
       return response.data.data;
     } catch (error: any) {
-      // Se retornar 404, não há reserva ativa
       if (error?.response?.status === 404) {
         return null;
       }
@@ -91,7 +82,6 @@ export const operatorApi = {
     }
   },
 
-  // Finalizar reserva como operador (com observações)
   async finalizeReservation(reservationId: number, notes?: string): Promise<Reservation> {
     const response = await httpClient.post<ApiResponse<Reservation>>(
       `/reservations/${reservationId}/operator-finalize`,

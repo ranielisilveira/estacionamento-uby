@@ -12,7 +12,6 @@ const spotTypeLabel: Record<string, string> = {
   regular: '🚗 Carro (Regular)',
   vip: '🚚 Caminhão (VIP)',
   disabled: '♿ PCD',
-  // Fallback para tipos antigos (se existirem)
   car: '🚗 Carro',
   motorcycle: '🏍️ Moto',
   truck: '🚚 Caminhão',

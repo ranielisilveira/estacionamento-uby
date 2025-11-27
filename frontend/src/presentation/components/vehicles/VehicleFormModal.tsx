@@ -27,7 +27,6 @@ export function VehicleFormModal({ isOpen, onClose, onSubmit, editingVehicle }: 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Preencher formulário quando estiver editando
   useEffect(() => {
     if (isOpen) {
       setError('');
@@ -59,7 +58,6 @@ export function VehicleFormModal({ isOpen, onClose, onSubmit, editingVehicle }: 
 
     try {
       await onSubmit(formData);
-      // Reset form
       setFormData({
         license_plate: '',
         brand: '',

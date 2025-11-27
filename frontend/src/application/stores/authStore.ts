@@ -10,7 +10,6 @@ interface AuthState {
   loadFromStorage: () => void;
 }
 
-// Função helper para carregar do localStorage
 const loadStoredAuth = () => {
   try {
     const token = localStorage.getItem('auth_token');
@@ -30,7 +29,6 @@ const loadStoredAuth = () => {
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
-  // Inicializa com dados do localStorage
   ...loadStoredAuth(),
 
   setAuth: (user, token) => {

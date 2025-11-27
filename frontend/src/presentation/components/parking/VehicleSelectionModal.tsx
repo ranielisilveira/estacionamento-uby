@@ -23,10 +23,8 @@ export function VehicleSelectionModal({
 
   if (!isOpen || !spot) return null;
 
-  // Filtrar veículos compatíveis com o tipo da vaga
   const compatibleVehicles = getCompatibleVehicles(vehicles, spot);
   
-  // Filtrar veículos que não têm reserva ativa
   const availableVehicles = compatibleVehicles.filter(v => !reservedVehicleIds.includes(v.id));
 
   const spotTypeNames: Record<ParkingSpot['type'], string> = {

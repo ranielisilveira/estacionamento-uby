@@ -40,12 +40,10 @@ export function ReservationCard({ reservation, onCancel, onCheckout }: Reservati
     const diffMs = now.getTime() - entryTime.getTime();
     const diffHours = diffMs / (1000 * 60 * 60);
     
-    // Calcular tempo decorrido
     const hours = Math.floor(diffHours);
     const minutes = Math.floor((diffHours - hours) * 60);
     setElapsedTime(`${hours}h ${minutes}min`);
     
-    // Calcular custo
     const hourlyPrice = reservation.parking_spot?.hourly_price || 5.0;
     const cost = diffHours * hourlyPrice;
     setCurrentCost(cost);

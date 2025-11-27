@@ -154,7 +154,6 @@ final class PaymentServiceTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Payment not found');
 
-        // Usando CreatePaymentDTO como alternativa já que UpdatePaymentDTO não foi testado se existe
         $dto = new CreatePaymentDTO(
             reservation_id: 1,
             amount: 100.0,
@@ -162,8 +161,6 @@ final class PaymentServiceTest extends TestCase
             status: 'paid'
         );
 
-        // Como update não aceita CreatePaymentDTO, vamos testar apenas a exceção de findById
-        // através do método markAsPaid que tem validação similar
         $this->service->markAsPaid(999999);
     }
 

@@ -21,7 +21,6 @@ return new class extends Migration
             $table->enum('status', ['available', 'occupied', 'maintenance', 'reserved'])->default('available');
             $table->timestamps();
 
-            // Índices
             $table->index('status');
             $table->index('operator_id');
             $table->index('number');

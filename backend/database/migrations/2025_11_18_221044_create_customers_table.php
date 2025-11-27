@@ -20,7 +20,6 @@ return new class extends Migration
             $table->string('password');
             $table->timestamp('email_verified_at')->nullable();
 
-            // Endereço
             $table->string('address_zipcode', 9);
             $table->string('address_street');
             $table->string('address_number', 20);
@@ -32,7 +31,6 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestamps();
 
-            // Índices
             $table->index('email');
             $table->index('cpf');
         });

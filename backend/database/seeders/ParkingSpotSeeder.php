@@ -12,7 +12,6 @@ class ParkingSpotSeeder extends Seeder
      */
     public function run(): void
     {
-        // Verificar se já existem vagas
         $existingCount = ParkingSpot::count();
 
         if ($existingCount > 0) {
@@ -23,19 +22,10 @@ class ParkingSpotSeeder extends Seeder
 
         $this->command->info('🚀 Criando vagas de estacionamento...');
 
-        // Vagas regulares para CARROS (A-01 até A-20)
         $this->createRegularCarSpots();
-
-        // Vagas para MOTOS (M-01 até M-15) - menores e mais baratas
         $this->createMotorcycleSpots();
-
-        // Vagas VIP para veículos especiais/caminhões (V-01 até V-05)
         $this->createVipSpots();
-
-        // Vagas para deficientes (D-01 até D-03)
         $this->createDisabledSpots();
-
-        // Definir alguns status aleatórios para realismo
         $this->setRandomStatuses();
 
         $total = ParkingSpot::count();
@@ -131,14 +121,12 @@ class ParkingSpotSeeder extends Seeder
      */
     private function setRandomStatuses(): void
     {
-        // 4 vagas regulares ocupadas
         ParkingSpot::where('type', 'regular')
             ->where('number', 'LIKE', 'A-%')
             ->inRandomOrder()
             ->limit(4)
             ->update(['status' => 'occupied']);
 
-        // 3 vagas regulares reservadas
         ParkingSpot::where('type', 'regular')
             ->where('number', 'LIKE', 'A-%')
             ->where('status', 'available')
@@ -146,7 +134,6 @@ class ParkingSpotSeeder extends Seeder
             ->limit(3)
             ->update(['status' => 'reserved']);
 
-        // 2 vagas em manutenção
         ParkingSpot::where('type', 'regular')
             ->where('number', 'LIKE', 'A-%')
             ->where('status', 'available')
@@ -154,13 +141,11 @@ class ParkingSpotSeeder extends Seeder
             ->limit(2)
             ->update(['status' => 'maintenance']);
 
-        // 2 motos ocupadas
         ParkingSpot::where('number', 'LIKE', 'M-%')
             ->inRandomOrder()
             ->limit(2)
             ->update(['status' => 'occupied']);
 
-        // 1 vaga VIP ocupada
         ParkingSpot::where('type', 'vip')
             ->inRandomOrder()
             ->limit(1)

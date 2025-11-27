@@ -28,36 +28,30 @@ interface OperatorLoginCredentials {
 }
 
 export const authApi = {
-  // Login de cliente
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const response = await httpClient.post<AuthResponse>('/customers/login', credentials);
     return response.data;
   },
 
-  // Login de operador
   async operatorLogin(credentials: OperatorLoginCredentials): Promise<AuthResponse> {
     const response = await httpClient.post<AuthResponse>('/operators/login', credentials);
     return response.data;
   },
 
-  // Registro de cliente
   async register(data: RegisterData): Promise<AuthResponse> {
     const response = await httpClient.post<AuthResponse>('/customers/register', data);
     return response.data;
   },
 
-  // Logout
   async logout(): Promise<void> {
     await httpClient.post('/customers/logout');
   },
 
-  // Verificar token
   async me(): Promise<Customer | Operator> {
     const response = await httpClient.get<ApiResponse<Customer | Operator>>('/customers/me');
     return response.data.data;
   },
 
-  // Validar CEP
   async validateCep(cep: string): Promise<{
     street: string;
     neighborhood: string;

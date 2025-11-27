@@ -15,12 +15,10 @@ export function ProtectedRoute({ children, allowedTypes }: ProtectedRouteProps) 
     loadFromStorage();
   }, [loadFromStorage]);
 
-  // Se não autenticado ou sem usuário, redireciona
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Se tipo de usuário não permitido, redireciona
   if (allowedTypes && !allowedTypes.includes(user.type)) {
     return <Navigate to="/login" replace />;
   }
