@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::table('vehicles', function (Blueprint $table) {
             $table->dropUnique('vehicles_license_plate_unique');
         });
-        
+
         DB::statement('CREATE UNIQUE INDEX vehicles_license_plate_unique ON vehicles (license_plate, deleted_at)');
     }
 
@@ -25,7 +25,7 @@ return new class extends Migration
     public function down(): void
     {
         DB::statement('DROP INDEX vehicles_license_plate_unique ON vehicles');
-        
+
         Schema::table('vehicles', function (Blueprint $table) {
             $table->unique('license_plate');
         });
