@@ -37,7 +37,28 @@ services:
       retries: 10
       start_period: 30s
 
-  # Nginx Web Server
+  # Frontend React
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: estacionamento-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000/api/v1
+      - VITE_CHAT_URL=http://localhost:3001
+    depends_on:
+      - backend
+      - chat
+    networks:
+      - estacionamento-network
+
+  # Nginx Web Server (Backend)
   nginx:
     image: nginx:alpine
     container_name: estacionamento-nginx
