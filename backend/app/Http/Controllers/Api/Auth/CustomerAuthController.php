@@ -21,7 +21,6 @@ class CustomerAuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:customers'],
             'cpf' => ['required', 'string', 'size:11', 'unique:customers'],
-            'rg' => ['required', 'string', 'max:20'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'phone' => ['nullable', 'string', 'max:20'],
             'zip_code' => ['required', 'string', 'max:9'],
@@ -37,7 +36,6 @@ class CustomerAuthController extends Controller
             'name' => $request->input('name'),
             'email' => $request->input('email'),
             'cpf' => $request->input('cpf'),
-            'rg' => $request->input('rg'),
             'password' => Hash::make($request->input('password')),
             'phone' => $request->input('phone'),
             'address_zipcode' => $request->input('zip_code'),
@@ -51,18 +49,10 @@ class CustomerAuthController extends Controller
 
         Mail::to($customer->email)->send(new WelcomeCustomerMail($customer));
 
-        $token = $customer->createToken('customer-token')->plainTextToken;
-
         return response()->json([
-            'user' => [
-                'id' => $customer->id,
-                'name' => $customer->name,
-                'email' => $customer->email,
-                'cpf' => $customer->cpf,
-                'phone' => $customer->phone,
-                'type' => 'customer',
-            ],
-            'token' => $token,
+            'message' => 'Cadastro realizado com sucesso! Verifique seu email para ativar sua conta.',
+            'email' => $customer->email,
+            'requires_verification' => true,
         ], 201);
     }
 
